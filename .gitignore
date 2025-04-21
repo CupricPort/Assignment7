@@ -1,0 +1,21 @@
+# 🐍 Python garbage
+__pycache__/
+*.pyc
+
+# 🗂️ GIS data files (too big for GitHub)
+*.gdb
+*.tif
+*.img
+*.sid
+
+# 🛠️ PyCharm or VSCode project files
+.idea/
+.vscode/
+
+# 💻 OS junk files
+.DS_Store
+Thumbs.db
+
+# 🔐 Secrets or virtual environment stuff
+.env
+venv/
