@@ -76,7 +76,7 @@ class GSheetEtl(SpatialEtl):
         arcpy.env.overwriteOutput = True
 
         in_table = self.transformed_path
-        out_feature_class = 'geocoded_points'
+        out_feature_class = 'avoid_points'
         x_field = 'X'
         y_field = 'Y'
 
