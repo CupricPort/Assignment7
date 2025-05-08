@@ -317,7 +317,7 @@ def main(config_dict):
     def main(config_dict):
         """
         Runs the full geoprocessing workflow:
-        - Buffers all layers
+        - Buffers all layerss
         - Intersects buffered layers
         - Erases avoid areas
         - Joins addresses within the risk zone
