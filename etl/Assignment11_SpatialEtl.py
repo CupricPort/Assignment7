@@ -5,6 +5,18 @@ import requests
 
 
 class SpatialEtl:
+    """
+    A base class for performing ETL (Extract, Transform, Load) operations for spatial data.
+
+    Attributes:
+        config_dict (dict): Configuration parameters loaded from YAML.
+        remote (str): URL of the remote dataset.
+        local_dir (str): Path to the local working directory.
+        data_format (str): Data format (e.g., 'csv').
+        destination (str): Path to output geodatabase.
+        geocoder_prefix_url (str): URL prefix for the geocoding service.
+        geocoder_suffix_url (str): URL suffix for the geocoding service.
+    """
     def __init__(self, config_dict):
         self.config_dict = config_dict
         self.remote = config_dict['remote_url']
@@ -23,10 +35,16 @@ class SpatialEtl:
 #from SpatialEtl import SpatialEtl
 
 class GSheetEtl(SpatialEtl):
+    """
+    Specialized ETL class to extract data from a Google Sheet, geocode it, and convert it to GIS format.
+    """
     def __init__(self, config_dict):
         super().__init__(config_dict)
 
     def extract(self):
+        """
+        Downloads CSV data from the remote Google Sheets URL and saves it locally.
+        """
         print(f"Extracting addresses from google sheets")
         r = requests.get(
             self.remote
@@ -41,6 +59,9 @@ class GSheetEtl(SpatialEtl):
         self.local_path = output_file_path
 
     def transform(self):
+        """
+        Extracts address from the CSV and then geocodes the addresses.
+        """
         print(f"Transform addresses via geocoding")
         input_csv = self.local_path
         output_csv = os.path.join(self.local_dir, 'geocoded_addresses.csv')
@@ -70,6 +91,9 @@ class GSheetEtl(SpatialEtl):
                     print("No match for:", address)
 
     def load(self):
+        """
+        Creates a point layer inside ArcPro from the geocoded addresses.
+        """
         print(f'Loading geocoded addresses')
 
         arcpy.env.workspace =self.destination
@@ -79,12 +103,14 @@ class GSheetEtl(SpatialEtl):
         out_feature_class = 'avoid_points'
         x_field = 'X'
         y_field = 'Y'
+        spatial_ref = arcpy.SpatialReference(104124)
 
         arcpy.management.XYTableToPoint(
             in_table=in_table,
             out_feature_class=out_feature_class,
             x_field=x_field,
-            y_field=y_field
+            y_field=y_field,
+            coordinate_system=spatial_ref
         )
         print(arcpy.GetCount_management(out_feature_class))
 

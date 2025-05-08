@@ -155,10 +155,10 @@ def exportMap(config_dict):
     subtitle = input("Enter a subtitle for your map layout: ")
 
     # Update the title element
-    for el in lyt.listElements("TEXT_ELEMENT"):
-        if "Text" in el.name:
-            logging.debug(f"Found title element: {el.name}")
-            el.text += f"\n{subtitle}"
+    for elm in lyt.listElements("TEXT_ELEMENT"):
+        if "Text" in elm.name:
+            logging.debug(f"Found title element: {elm.name}")
+            elm.text += f"\n{subtitle}"
             logging.info(f"Updated map title with subtitle: {subtitle}")
 
     # Export the layout to a PDF
@@ -167,6 +167,20 @@ def exportMap(config_dict):
 
     logging.info(f"Exported map to PDF at: {output_pdf}")
     logging.debug("Exiting exportMap function")
+
+def spatial_join_to_final(cleaned_layer, config_dict):
+    output_name = "Target_Addresses"
+    output_path = os.path.join(config_dict['destination'], output_name)
+
+    arcpy.analysis.SpatialJoin(
+        target_features="Addresses",
+        join_features=cleaned_layer,
+        out_feature_class=output_path,
+        join_type="KEEP_COMMON",
+        match_option="INTERSECT"
+    )
+
+    return output_path
 
 def main(config_dict):
     logging.info("Starting West Nile Virus Simulation")
@@ -189,15 +203,29 @@ def main(config_dict):
 
     map_obj.addDataFromPath(intersect_result)
     map_obj.addDataFromPath(joined_result)
+    map_obj.addDataFromPath(Target_Addresses)
+
+    target_layer = map_obj.listLayers("Target_Addresses")[0]
+    target_layer.definitionQuery = "Join_Count = 1"
+
+    final_layer = map_obj.listLayers("Risk_Zone_Cleaned")[0]
+
+    sym = final_layer.symbology
+    sym.updateRenderer('SimpleRenderer')
+
+    sym.renderer.symbol.applySymbolFromGallery("Polygon")
+    sym.renderer.symbol.color = {'RGB': [255, 0, 0, 127]}
+    sym.renderer.symbol.outlineColor = {'RGB': [0, 0, 0, 255]}
+
+    final_layer.symbology = sym
     project.save()
 
 if __name__ == '__main__':
     config_dict = setup()
     print(config_dict)
     etl(config_dict)
-    exportMap(config_dict)
     main(config_dict)
-
+    exportMap(config_dict)
 
 
 
